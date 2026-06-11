@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Budget Planner Mobile Application
 
 Version 1.0 scaffold for an offline-first AI-powered budget planner.
@@ -77,3 +78,6 @@ uvicorn app.main:app --reload
 2. Improve SMS parsing with richer NLP entity extraction and expanded multi-bank templates.
 3. Add encrypted Room + biometric/PIN lock.
 4. Add Firebase sync conflict resolution.
+=======
+# App_Balance
+>>>>>>> 660e0cf04b5a62b768294e415f6ca842c72a5e5d
