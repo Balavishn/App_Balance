@@ -6,6 +6,7 @@ import com.aibudgetplanner.app.data.local.dao.UserProfileDao
 import com.aibudgetplanner.app.data.local.entity.ExpenseEntity
 import com.aibudgetplanner.app.data.local.entity.FixedExpenseEntity
 import com.aibudgetplanner.app.data.local.entity.UserProfileEntity
+import com.aibudgetplanner.app.data.sync.SyncScheduler
 import com.aibudgetplanner.app.domain.model.BudgetSnapshot
 import com.aibudgetplanner.app.domain.usecase.BudgetEngineUseCase
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +21,9 @@ class BudgetRepository @Inject constructor(
     private val userProfileDao: UserProfileDao,
     private val fixedExpenseDao: FixedExpenseDao,
     private val expenseDao: ExpenseDao,
-    private val budgetEngineUseCase: BudgetEngineUseCase
+    private val budgetEngineUseCase: BudgetEngineUseCase,
+    private val pendingSyncRepository: PendingSyncRepository,
+    private val syncScheduler: SyncScheduler
 ) {
     fun observeBudgetSnapshot(userId: String): Flow<BudgetSnapshot?> {
         val fromDate = LocalDate.now().withDayOfMonth(1)
@@ -38,7 +41,10 @@ class BudgetRepository @Inject constructor(
     }
 
     suspend fun upsertProfile(profile: UserProfileEntity) {
-        userProfileDao.upsert(profile)
+        val updated = profile.copy(updatedAt = System.currentTimeMillis())
+        userProfileDao.upsert(updated)
+        pendingSyncRepository.enqueueProfileUpsert(updated)
+        syncScheduler.requestImmediateSync()
     }
 
     fun observeExpenses(userId: String): Flow<List<ExpenseEntity>> = expenseDao.observeByUser(userId)
@@ -47,27 +53,43 @@ class BudgetRepository @Inject constructor(
         fixedExpenseDao.observeByUser(userId)
 
     suspend fun addExpense(expense: ExpenseEntity) {
-        expenseDao.insert(expense)
+        val updated = expense.copy(updatedAt = System.currentTimeMillis())
+        val insertedId = expenseDao.insert(updated)
+        pendingSyncRepository.enqueueExpenseUpsert(updated.copy(expenseId = insertedId))
+        syncScheduler.requestImmediateSync()
     }
 
     suspend fun updateExpense(expense: ExpenseEntity) {
-        expenseDao.update(expense)
+        val updated = expense.copy(updatedAt = System.currentTimeMillis())
+        expenseDao.update(updated)
+        pendingSyncRepository.enqueueExpenseUpsert(updated)
+        syncScheduler.requestImmediateSync()
     }
 
     suspend fun deleteExpense(expense: ExpenseEntity) {
         expenseDao.delete(expense)
+        pendingSyncRepository.enqueueExpenseDelete(expense)
+        syncScheduler.requestImmediateSync()
     }
 
     suspend fun addFixedExpense(expense: FixedExpenseEntity) {
-        fixedExpenseDao.insert(expense)
+        val updated = expense.copy(updatedAt = System.currentTimeMillis())
+        val insertedId = fixedExpenseDao.insert(updated)
+        pendingSyncRepository.enqueueFixedExpenseUpsert(updated.copy(expenseId = insertedId))
+        syncScheduler.requestImmediateSync()
     }
 
     suspend fun updateFixedExpense(expense: FixedExpenseEntity) {
-        fixedExpenseDao.update(expense)
+        val updated = expense.copy(updatedAt = System.currentTimeMillis())
+        fixedExpenseDao.update(updated)
+        pendingSyncRepository.enqueueFixedExpenseUpsert(updated)
+        syncScheduler.requestImmediateSync()
     }
 
     suspend fun deleteFixedExpense(expense: FixedExpenseEntity) {
         fixedExpenseDao.delete(expense)
+        pendingSyncRepository.enqueueFixedExpenseDelete(expense)
+        syncScheduler.requestImmediateSync()
     }
 
     private fun UserProfileEntity.toBudgetSnapshot(

@@ -1,16 +1,17 @@
 package com.aibudgetplanner.app.domain.usecase
 
+import com.aibudgetplanner.app.ai.SpendingPredictor
 import com.aibudgetplanner.app.domain.model.BudgetSnapshot
 import com.aibudgetplanner.app.domain.model.PredictionResult
 import java.time.LocalDate
 import javax.inject.Inject
 
-class ExpensePredictionUseCase @Inject constructor() {
+class ExpensePredictionUseCase @Inject constructor(
+    private val spendingPredictor: SpendingPredictor
+) {
     operator fun invoke(snapshot: BudgetSnapshot): PredictionResult {
-        val daysElapsed = LocalDate.now().dayOfMonth.coerceAtLeast(1)
-        val remainingFutureDays = (snapshot.remainingDays - 1).coerceAtLeast(0)
-        val averageDailySpend = snapshot.totalSpentThisMonth / daysElapsed
-        val projectedSpending = snapshot.totalSpentThisMonth + (averageDailySpend * remainingFutureDays)
+        val inference = spendingPredictor.predictMonthEndSpend(snapshot)
+        val projectedSpending = inference.predictedSpending
         val projectedSavings = snapshot.salary - snapshot.totalFixedExpenses - projectedSpending
 
         val utilization = if (snapshot.availableBudget <= 0.0) 1.0 else projectedSpending / snapshot.availableBudget
@@ -24,7 +25,7 @@ class ExpensePredictionUseCase @Inject constructor() {
             predictedSpending = projectedSpending,
             predictedSavings = projectedSavings,
             riskLevel = riskLevel,
-            modelUsed = "On-device trend model"
+            modelUsed = inference.modelUsed
         )
     }
 }

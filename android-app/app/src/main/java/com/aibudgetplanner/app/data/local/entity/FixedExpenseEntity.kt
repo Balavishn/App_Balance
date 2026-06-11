@@ -11,5 +11,6 @@ data class FixedExpenseEntity(
     val category: String,
     val amount: Double,
     val dueDate: Int,
-    val isRecurring: Boolean
+    val isRecurring: Boolean,
+    val updatedAt: Long = System.currentTimeMillis()
 )

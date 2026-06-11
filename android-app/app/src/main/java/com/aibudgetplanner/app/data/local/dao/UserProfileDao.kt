@@ -14,4 +14,7 @@ interface UserProfileDao {
 
     @Query("SELECT * FROM user_profile LIMIT 1")
     fun observeProfile(): Flow<UserProfileEntity?>
+
+    @Query("SELECT * FROM user_profile WHERE userId = :userId LIMIT 1")
+    suspend fun getByUser(userId: String): UserProfileEntity?
 }

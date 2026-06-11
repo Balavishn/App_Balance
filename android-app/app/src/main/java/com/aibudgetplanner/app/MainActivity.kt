@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.aibudgetplanner.app.ui.navigation.AIBudgetNavHost
+import com.aibudgetplanner.app.ui.screen.security.AppLockGate
 import com.aibudgetplanner.app.ui.theme.AIBudgetPlannerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -13,7 +14,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AIBudgetPlannerTheme {
-                AIBudgetNavHost()
+                AppLockGate {
+                    AIBudgetNavHost()
+                }
             }
         }
     }

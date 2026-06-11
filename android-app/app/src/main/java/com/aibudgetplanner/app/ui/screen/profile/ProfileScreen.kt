@@ -7,9 +7,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,9 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     fun hasPermission(permission: String): Boolean {
@@ -48,6 +53,31 @@ fun ProfileScreen() {
     ) {
         Text(text = "Profile", style = MaterialTheme.typography.headlineMedium)
         Text(text = "Backup, export, and settings modules are scaffolded for next implementation.")
+
+        Card(modifier = Modifier.padding(top = 8.dp)) {
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "Cloud Sync", style = MaterialTheme.typography.titleMedium)
+                Button(
+                    onClick = viewModel::syncNow,
+                    enabled = !uiState.isSyncing,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = if (uiState.isSyncing) "Syncing..." else "Sync Now")
+                }
+
+                if (uiState.isSyncing) {
+                    CircularProgressIndicator()
+                }
+
+                uiState.lastSyncSummary?.let { summary ->
+                    Text(text = summary)
+                }
+
+                uiState.errorMessage?.let { error ->
+                    Text(text = error, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
 
         Card(modifier = Modifier.padding(top = 8.dp)) {
             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

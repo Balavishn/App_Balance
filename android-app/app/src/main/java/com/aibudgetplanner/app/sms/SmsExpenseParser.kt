@@ -8,7 +8,9 @@ object SmsExpenseParser {
         Regex("(?:debited|spent|payment of|paid|withdrawn|sent)[:\\s]*(?:inr|rs\\.?|₹)?\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?)", RegexOption.IGNORE_CASE),
         Regex("(?:inr|rs\\.?|₹)\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?)\\s*(?:debited|spent|paid|withdrawn|sent)", RegexOption.IGNORE_CASE),
         Regex("(?:txn|transaction).{0,35}?(?:inr|rs\\.?|₹)\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?)", RegexOption.IGNORE_CASE),
-        Regex("a/c\s*[*xX]{2,}\\d{2,}.{0,40}?(?:inr|rs\\.?|₹)\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?)", RegexOption.IGNORE_CASE)
+        Regex("a/c\\s*[*xX]{2,}\\d{2,}.{0,40}?(?:inr|rs\\.?|₹)\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?)", RegexOption.IGNORE_CASE),
+        Regex("(?:purchase|pos|ecom|upi txn|imps txn|neft txn).{0,40}?(?:inr|rs\\.?|₹)\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?)", RegexOption.IGNORE_CASE),
+        Regex("(?:amount)\\s*(?:inr|rs\\.?|₹)\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?).{0,30}?(?:debited|paid|dr)", RegexOption.IGNORE_CASE)
     )
 
     private val creditMarkers = listOf("credited", "received", "refund", "reversed", "cashback", "deposited")
@@ -25,15 +27,20 @@ object SmsExpenseParser {
             ?.toDoubleOrNull()
             ?: return null
 
+        val entities = SmsNlpEntityExtractor.extract(normalized)
+
         val description = extractDescription(normalized)
         val category = inferCategory(normalized)
-        val paymentMethod = inferPaymentMethod(normalized)
+        val paymentMethod = if (entities.channel == "SMS") inferPaymentMethod(normalized) else entities.channel
 
         return SmsExpenseCandidate(
             amount = amount,
             description = description,
             category = category,
-            paymentMethod = paymentMethod
+            paymentMethod = paymentMethod,
+            merchant = entities.merchant,
+            accountLastDigits = entities.accountLastDigits,
+            transactionReference = entities.transactionReference
         )
     }
 
@@ -76,5 +83,8 @@ data class SmsExpenseCandidate(
     val amount: Double,
     val description: String,
     val category: ExpenseCategory,
-    val paymentMethod: String
+    val paymentMethod: String,
+    val merchant: String,
+    val accountLastDigits: String?,
+    val transactionReference: String?
 )

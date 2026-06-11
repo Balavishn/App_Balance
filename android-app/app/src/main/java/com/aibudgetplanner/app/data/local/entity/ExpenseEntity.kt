@@ -11,5 +11,6 @@ data class ExpenseEntity(
     val category: String,
     val amount: Double,
     val description: String,
-    val paymentMethod: String
+    val paymentMethod: String,
+    val updatedAt: Long = System.currentTimeMillis()
 )

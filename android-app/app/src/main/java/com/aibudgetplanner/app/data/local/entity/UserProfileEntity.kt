@@ -11,5 +11,6 @@ data class UserProfileEntity(
     val monthlySavingsGoal: Double,
     val currency: String,
     val createdDate: Long,
-    val financialGoals: String
+    val financialGoals: String,
+    val updatedAt: Long = System.currentTimeMillis()
 )

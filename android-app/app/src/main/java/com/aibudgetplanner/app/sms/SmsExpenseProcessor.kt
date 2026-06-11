@@ -21,7 +21,19 @@ class SmsExpenseProcessor @Inject constructor(
                 date = System.currentTimeMillis(),
                 category = candidate.category.name,
                 amount = candidate.amount,
-                description = candidate.description,
+                description = buildString {
+                    append(candidate.merchant)
+                    append(" | ")
+                    append(candidate.description)
+                    candidate.accountLastDigits?.let {
+                        append(" | A/C xx")
+                        append(it)
+                    }
+                    candidate.transactionReference?.let {
+                        append(" | Ref ")
+                        append(it)
+                    }
+                },
                 paymentMethod = candidate.paymentMethod
             )
         )
