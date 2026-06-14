@@ -1,6 +1,12 @@
+import os
 from sqlmodel import Session, SQLModel, create_engine
 
-engine = create_engine("sqlite:///./budget_planner.db", echo=False)
+database_url = os.environ.get("DATABASE_URL", "sqlite:///./budget_planner.db")
+
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(database_url, echo=False)
 
 
 def create_db_and_tables() -> None:
