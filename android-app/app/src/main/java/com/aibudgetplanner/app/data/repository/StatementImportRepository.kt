@@ -14,7 +14,7 @@ import javax.inject.Singleton
 @Singleton
 class StatementImportRepository @Inject constructor() {
     private val client = OkHttpClient()
-    private val baseUrl = "http://10.0.2.2:8000"
+    private val baseUrl = "https://app-balance-yexf.onrender.com"
 
     @Throws(IOException::class)
     fun importStatement(fileName: String, mimeType: String?, bytes: ByteArray): StatementImportResult {
