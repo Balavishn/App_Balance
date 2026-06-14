@@ -10,31 +10,33 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+import androidx.compose.ui.graphics.Color
+
 private val LightColors = lightColorScheme(
-    primary = BrandBlue,
-    secondary = BrandGreen,
-    surface = SurfaceLight
+    primary = Color(0xFF3B82F6),
+    secondary = Color(0xFF10B981),
+    background = Color(0xFF090E1A),
+    surface = Color(0xFF111827),
+    onBackground = Color.White,
+    onSurface = Color.White
 )
 
 private val DarkColors = darkColorScheme(
-    primary = BrandBlue,
-    secondary = BrandGreen
+    primary = Color(0xFF3B82F6),
+    secondary = Color(0xFF10B981),
+    background = Color(0xFF090E1A),
+    surface = Color(0xFF111827),
+    onBackground = Color.White,
+    onSurface = Color.White
 )
 
 @Composable
 fun AIBudgetPlannerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = true, // Force dark mode by default
+    dynamicColor: Boolean = false, // Disable dynamic color overrides
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
+    val colorScheme = if (darkTheme) DarkColors else LightColors
 
     MaterialTheme(
         colorScheme = colorScheme,
