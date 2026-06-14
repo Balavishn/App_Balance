@@ -90,7 +90,9 @@ class FirebaseSyncManager @Inject constructor(
                 userRoot.collection("profile").document("main").set(RemoteUserProfile.from(localProfile)).await()
                 uploaded += 1
             } else {
-                userProfileDao.upsert(remote.toEntity())
+                if (remote != null) {
+                    userProfileDao.upsert(remote.toEntity())
+                }
                 downloaded += 1
                 conflicts += 1
             }
@@ -108,7 +110,9 @@ class FirebaseSyncManager @Inject constructor(
                 userRoot.collection("fixed_expenses").document(docId).set(RemoteFixedExpense.from(local)).await()
                 uploaded += 1
             } else {
-                fixedExpenseDao.insert(remote.toEntity())
+                if (remote != null) {
+                    fixedExpenseDao.insert(remote.toEntity())
+                }
                 downloaded += 1
                 conflicts += 1
             }
@@ -133,7 +137,9 @@ class FirebaseSyncManager @Inject constructor(
                 userRoot.collection("expenses").document(docId).set(RemoteExpense.from(local)).await()
                 uploaded += 1
             } else {
-                expenseDao.insert(remote.toEntity())
+                if (remote != null) {
+                    expenseDao.insert(remote.toEntity())
+                }
                 downloaded += 1
                 conflicts += 1
             }

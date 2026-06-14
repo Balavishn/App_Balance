@@ -8,6 +8,12 @@ from app.main import app
 
 
 def _create_client_with_test_db() -> TestClient:
+    import os
+    if os.path.exists("./test_budget_planner.db"):
+        try:
+            os.remove("./test_budget_planner.db")
+        except Exception:
+            pass
     test_engine = create_engine("sqlite:///./test_budget_planner.db", echo=False)
     db.engine = test_engine
     SQLModel.metadata.create_all(test_engine)

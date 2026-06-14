@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -14,8 +16,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -24,9 +30,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun AppLockGate(
-    content: @Composable () -> Unit,
-    viewModel: AppLockViewModel = hiltViewModel()
+    content: @Composable () -> Unit
 ) {
+    val viewModel: AppLockViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.unlocked || !uiState.lockEnabled) {
@@ -40,16 +46,24 @@ fun AppLockGate(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .safeDrawingPadding()
+            .padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Unlock App", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = "Unlock App",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
+        )
         Text(
             text = if (uiState.hasPin) {
                 "Use biometric authentication or PIN"
             } else {
                 "Set a PIN to secure this app"
-            }
+            },
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         if (canUseBiometric(context) && activity != null && uiState.hasPin) {
@@ -60,7 +74,7 @@ fun AppLockGate(
                         onSuccess = viewModel::onBiometricSuccess
                     )
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
             ) {
                 Text("Unlock with Biometrics")
             }
@@ -68,17 +82,31 @@ fun AppLockGate(
 
         OutlinedTextField(
             value = uiState.pinInput,
-            onValueChange = viewModel::onPinChange,
+            onValueChange = { input ->
+                if (input.all { it.isDigit() }) {
+                    viewModel.onPinChange(input)
+                }
+            },
             label = { Text(if (uiState.hasPin) "Enter PIN" else "Set PIN") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Button(onClick = viewModel::submitPin, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = viewModel::submitPin,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+        ) {
             Text(if (uiState.hasPin) "Unlock with PIN" else "Save PIN and Unlock")
         }
 
         uiState.errorMessage?.let { error ->
-            Text(text = error, color = MaterialTheme.colorScheme.error)
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 8.dp),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

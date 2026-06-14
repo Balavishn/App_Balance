@@ -1,6 +1,9 @@
 package com.aibudgetplanner.app.ui.navigation
 
-import androidx.compose.foundation.layout.calculateTopPadding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -8,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -33,7 +38,26 @@ import com.aibudgetplanner.app.ui.screen.setup.SetupScreen
 import com.aibudgetplanner.app.ui.screen.setup.SetupViewModel
 
 @Composable
-fun AIBudgetNavHost() {
+fun AIBudgetNavHost(
+    viewModel: AIBudgetNavViewModel = hiltViewModel()
+) {
+    val navState by viewModel.navigationState.collectAsState()
+
+    if (navState is AIBudgetNavViewModel.NavigationState.Loading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val startRoute = when (navState) {
+        AIBudgetNavViewModel.NavigationState.Dashboard -> AppDestination.Dashboard.route
+        else -> AppDestination.Setup.route
+    }
+
     val navController = rememberNavController()
 
     val bottomDestinations = listOf(
@@ -67,114 +91,118 @@ fun AIBudgetNavHost() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = AppDestination.Setup.route
+            startDestination = startRoute
         ) {
             composable(AppDestination.Setup.route) {
-                val viewModel: SetupViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val setupViewModel: SetupViewModel = hiltViewModel()
+                val uiState by setupViewModel.uiState.collectAsState()
                 SetupScreen(
                     uiState = uiState,
-                    onSalaryChange = viewModel::onSalaryChange,
-                    onSavingsGoalChange = viewModel::onSavingsGoalChange,
-                    onSalaryDateChange = viewModel::onSalaryDateChange,
-                    onCurrencyChange = viewModel::onCurrencyChange,
-                    onGoalsChange = viewModel::onGoalsChange,
+                    onSalaryChange = setupViewModel::onSalaryChange,
+                    onSavingsGoalChange = setupViewModel::onSavingsGoalChange,
+                    onSalaryDateChange = setupViewModel::onSalaryDateChange,
+                    onCurrencyChange = setupViewModel::onCurrencyChange,
+                    onGoalsChange = setupViewModel::onGoalsChange,
                     onContinue = {
-                        viewModel.saveProfile {
+                        setupViewModel.saveProfile {
+                            viewModel.checkProfile() // Recheck profile to update navigation state
                             navController.navigate(AppDestination.Dashboard.route) {
                                 popUpTo(AppDestination.Setup.route) { inclusive = true }
                             }
                         }
                     },
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.Dashboard.route) {
-                val viewModel: DashboardViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val dashboardViewModel: DashboardViewModel = hiltViewModel()
+                val uiState by dashboardViewModel.uiState.collectAsState()
                 DashboardScreen(
                     uiState = uiState,
                     onImportStatement = { navController.navigate(AppDestination.StatementImport.route) },
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.AddExpense.route) {
-                val viewModel: ExpenseViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val expenseViewModel: ExpenseViewModel = hiltViewModel()
+                val uiState by expenseViewModel.uiState.collectAsState()
                 AddExpenseScreen(
                     uiState = uiState,
-                    onAmountChange = viewModel::onAmountChange,
-                    onCategoryChange = viewModel::onCategoryChange,
-                    onDescriptionChange = viewModel::onDescriptionChange,
-                    onPaymentMethodChange = viewModel::onPaymentMethodChange,
-                    onSave = { viewModel.saveExpense { navController.navigate(AppDestination.Dashboard.route) } },
+                    onAmountChange = expenseViewModel::onAmountChange,
+                    onCategoryChange = expenseViewModel::onCategoryChange,
+                    onDescriptionChange = expenseViewModel::onDescriptionChange,
+                    onPaymentMethodChange = expenseViewModel::onPaymentMethodChange,
+                    onSave = { expenseViewModel.saveExpense { navController.navigate(AppDestination.Dashboard.route) } },
                     onViewHistory = { navController.navigate(AppDestination.ExpenseHistory.route) },
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.ExpenseHistory.route) {
-                val viewModel: ExpenseHistoryViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val historyViewModel: ExpenseHistoryViewModel = hiltViewModel()
+                val uiState by historyViewModel.uiState.collectAsState()
                 ExpenseHistoryScreen(
                     uiState = uiState,
-                    onSearchChange = viewModel::onSearchQueryChange,
-                    onCategoryFilterChange = viewModel::onCategoryFilterChange,
-                    onDateFilterChange = viewModel::onDateFilterChange,
-                    onStartEdit = viewModel::startEdit,
-                    onEditAmountChange = viewModel::onEditAmountChange,
-                    onEditDescriptionChange = viewModel::onEditDescriptionChange,
-                    onSaveEdit = viewModel::saveEdit,
-                    onCancelEdit = viewModel::cancelEdit,
-                    onDelete = viewModel::deleteExpense,
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    onSearchChange = historyViewModel::onSearchQueryChange,
+                    onCategoryFilterChange = historyViewModel::onCategoryFilterChange,
+                    onDateFilterChange = historyViewModel::onDateFilterChange,
+                    onStartEdit = historyViewModel::startEdit,
+                    onEditAmountChange = historyViewModel::onEditAmountChange,
+                    onEditDescriptionChange = historyViewModel::onEditDescriptionChange,
+                    onSaveEdit = historyViewModel::saveEdit,
+                    onCancelEdit = historyViewModel::cancelEdit,
+                    onDelete = historyViewModel::deleteExpense,
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.FixedExpenses.route) {
-                val viewModel: FixedExpenseViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val fixedExpenseViewModel: FixedExpenseViewModel = hiltViewModel()
+                val uiState by fixedExpenseViewModel.uiState.collectAsState()
                 FixedExpensesScreen(
                     uiState = uiState,
-                    onNameChange = viewModel::onNameChange,
-                    onCategoryChange = viewModel::onCategoryChange,
-                    onAmountChange = viewModel::onAmountChange,
-                    onDueDateChange = viewModel::onDueDateChange,
-                    onRecurringChange = viewModel::onRecurringChange,
-                    onSave = viewModel::saveFixedExpense,
-                    onStartEdit = viewModel::startEdit,
-                    onCancelEdit = viewModel::cancelEdit,
-                    onDelete = viewModel::deleteFixedExpense,
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    onNameChange = fixedExpenseViewModel::onNameChange,
+                    onCategoryChange = fixedExpenseViewModel::onCategoryChange,
+                    onAmountChange = fixedExpenseViewModel::onAmountChange,
+                    onDueDateChange = fixedExpenseViewModel::onDueDateChange,
+                    onRecurringChange = fixedExpenseViewModel::onRecurringChange,
+                    onSave = fixedExpenseViewModel::saveFixedExpense,
+                    onStartEdit = fixedExpenseViewModel::startEdit,
+                    onCancelEdit = fixedExpenseViewModel::cancelEdit,
+                    onDelete = fixedExpenseViewModel::deleteFixedExpense,
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.Insights.route) {
-                val viewModel: InsightsViewModel = hiltViewModel()
-                val insight by viewModel.insight.collectAsState()
+                val insightsViewModel: InsightsViewModel = hiltViewModel()
+                val insight by insightsViewModel.insight.collectAsState()
                 InsightsScreen(
                     insight = insight,
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.Reports.route) {
-                val viewModel: ReportsViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val reportsViewModel: ReportsViewModel = hiltViewModel()
+                val uiState by reportsViewModel.uiState.collectAsState()
                 ReportsScreen(
                     uiState = uiState,
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.StatementImport.route) {
-                val viewModel: StatementImportViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsState()
+                val importViewModel: StatementImportViewModel = hiltViewModel()
+                val uiState by importViewModel.uiState.collectAsState()
                 StatementImportScreen(
                     uiState = uiState,
-                    onPickFile = viewModel::pickAndImport,
-                    onClear = viewModel::clearResult,
-                    contentPaddingTop = paddingValues.calculateTopPadding()
+                    onPickFile = importViewModel::pickAndImport,
+                    onClear = importViewModel::clearResult,
+                    contentPadding = paddingValues
                 )
             }
             composable(AppDestination.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(
+                    contentPadding = paddingValues
+                )
             }
         }
     }
 }
+

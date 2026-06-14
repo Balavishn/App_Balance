@@ -26,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aibudgetplanner.app.data.local.entity.FixedExpenseEntity
 
+import androidx.compose.foundation.layout.PaddingValues
+
 @Composable
 fun FixedExpensesScreen(
     uiState: FixedExpenseUiState,
@@ -38,87 +40,108 @@ fun FixedExpensesScreen(
     onStartEdit: (FixedExpenseEntity) -> Unit,
     onCancelEdit: () -> Unit,
     onDelete: (FixedExpenseEntity) -> Unit,
-    contentPaddingTop: androidx.compose.ui.unit.Dp
+    contentPadding: PaddingValues
 ) {
     var categoryMenuExpanded by remember { mutableStateOf(false) }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = contentPaddingTop)
+            .padding(contentPadding)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(text = "Fixed Expenses", style = MaterialTheme.typography.headlineMedium)
-
-        OutlinedTextField(
-            value = uiState.name,
-            onValueChange = onNameChange,
-            label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = uiState.category,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Category") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Button(onClick = { categoryMenuExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-            Text("Select Category")
+        item {
+            Text(text = "Fixed Expenses", style = MaterialTheme.typography.headlineMedium)
         }
-        DropdownMenu(
-            expanded = categoryMenuExpanded,
-            onDismissRequest = { categoryMenuExpanded = false }
-        ) {
-            uiState.availableCategories.forEach { category ->
-                DropdownMenuItem(
-                    text = { Text(category) },
-                    onClick = {
-                        onCategoryChange(category)
-                        categoryMenuExpanded = false
-                    }
+
+        item {
+            OutlinedTextField(
+                value = uiState.name,
+                onValueChange = onNameChange,
+                label = { Text("Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        item {
+            Column {
+                OutlinedTextField(
+                    value = uiState.category,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Category") },
+                    modifier = Modifier.fillMaxWidth()
                 )
+                Button(onClick = { categoryMenuExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Select Category")
+                }
+                DropdownMenu(
+                    expanded = categoryMenuExpanded,
+                    onDismissRequest = { categoryMenuExpanded = false }
+                ) {
+                    uiState.availableCategories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category) },
+                            onClick = {
+                                onCategoryChange(category)
+                                categoryMenuExpanded = false
+                            }
+                        )
+                    }
+                }
             }
         }
-        OutlinedTextField(
-            value = uiState.amount,
-            onValueChange = onAmountChange,
-            label = { Text("Amount") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = uiState.dueDate,
-            onValueChange = onDueDateChange,
-            label = { Text("Due Date (1-31)") },
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("Recurring")
-            Switch(checked = uiState.isRecurring, onCheckedChange = onRecurringChange)
+        item {
+            OutlinedTextField(
+                value = uiState.amount,
+                onValueChange = onAmountChange,
+                label = { Text("Amount") },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
-        Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) {
-            Text(if (uiState.editingExpenseId == null) "Add Fixed Expense" else "Update Fixed Expense")
+        item {
+            OutlinedTextField(
+                value = uiState.dueDate,
+                onValueChange = onDueDateChange,
+                label = { Text("Due Date (1-31)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text("Recurring")
+                Switch(checked = uiState.isRecurring, onCheckedChange = onRecurringChange)
+            }
+        }
+
+        item {
+            Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) {
+                Text(if (uiState.editingExpenseId == null) "Add Fixed Expense" else "Update Fixed Expense")
+            }
         }
 
         if (uiState.editingExpenseId != null) {
-            Button(onClick = onCancelEdit, modifier = Modifier.fillMaxWidth()) {
-                Text("Cancel Edit")
+            item {
+                Button(onClick = onCancelEdit, modifier = Modifier.fillMaxWidth()) {
+                    Text("Cancel Edit")
+                }
             }
         }
 
-        Spacer(modifier = Modifier.padding(2.dp))
+        item {
+            Spacer(modifier = Modifier.padding(2.dp))
+        }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(uiState.expenses, key = { it.expenseId }) { expense ->
-                FixedExpenseRow(
-                    expense = expense,
-                    onEdit = { onStartEdit(expense) },
-                    onDelete = { onDelete(expense) }
-                )
-            }
+        items(uiState.expenses, key = { it.expenseId }) { expense ->
+            FixedExpenseRow(
+                expense = expense,
+                onEdit = { onStartEdit(expense) },
+                onDelete = { onDelete(expense) }
+            )
         }
     }
 }

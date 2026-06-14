@@ -13,6 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
+import androidx.compose.foundation.layout.PaddingValues
+
 @Composable
 fun SetupScreen(
     uiState: SetupUiState,
@@ -22,14 +27,15 @@ fun SetupScreen(
     onCurrencyChange: (String) -> Unit,
     onGoalsChange: (String) -> Unit,
     onContinue: () -> Unit,
-    contentPaddingTop: androidx.compose.ui.unit.Dp
+    contentPadding: PaddingValues
 ) {
     val state = uiState
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = contentPaddingTop)
+            .padding(contentPadding)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

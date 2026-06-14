@@ -40,6 +40,8 @@ class BudgetRepository @Inject constructor(
         }
     }
 
+    fun observeProfile(): Flow<UserProfileEntity?> = userProfileDao.observeProfile()
+
     suspend fun upsertProfile(profile: UserProfileEntity) {
         val updated = profile.copy(updatedAt = System.currentTimeMillis())
         userProfileDao.upsert(updated)
@@ -116,6 +118,8 @@ class BudgetRepository @Inject constructor(
         )
         val savingsProgress = budgetEngineUseCase.calculateSavingsProgress(
             salary = salary,
+            fixedExpenses = fixedTotal,
+            spentThisMonth = spentThisMonth,
             savingsGoal = monthlySavingsGoal
         )
 
@@ -128,7 +132,8 @@ class BudgetRepository @Inject constructor(
             remainingBudget = remainingBudget,
             dailyBudget = dailyBudget,
             remainingDays = remainingDays,
-            savingsProgress = savingsProgress
+            savingsProgress = savingsProgress,
+            currency = currency
         )
     }
 }

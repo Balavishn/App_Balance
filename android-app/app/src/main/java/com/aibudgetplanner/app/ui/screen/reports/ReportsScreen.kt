@@ -30,15 +30,17 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 
+import androidx.compose.foundation.layout.PaddingValues
+
 @Composable
 fun ReportsScreen(
     uiState: ReportsUiState,
-    contentPaddingTop: androidx.compose.ui.unit.Dp
+    contentPadding: PaddingValues
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = contentPaddingTop)
+            .padding(contentPadding)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

@@ -14,6 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aibudgetplanner.app.domain.model.ExpenseCategory
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
+import androidx.compose.foundation.layout.PaddingValues
+
 @Composable
 fun AddExpenseScreen(
     uiState: ExpenseUiState,
@@ -23,14 +28,15 @@ fun AddExpenseScreen(
     onPaymentMethodChange: (String) -> Unit,
     onSave: () -> Unit,
     onViewHistory: () -> Unit,
-    contentPaddingTop: androidx.compose.ui.unit.Dp
+    contentPadding: PaddingValues
 ) {
     val state = uiState
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = contentPaddingTop)
+            .padding(contentPadding)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

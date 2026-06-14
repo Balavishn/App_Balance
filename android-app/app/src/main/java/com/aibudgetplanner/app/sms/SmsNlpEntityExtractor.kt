@@ -14,12 +14,30 @@ object SmsNlpEntityExtractor {
     fun extract(message: String): SmsEntities {
         val normalized = message.replace(Regex("\\s+"), " ").trim()
 
-        val merchant = merchantPatterns
+        var merchant = merchantPatterns
             .asSequence()
             .mapNotNull { it.find(normalized)?.groupValues?.getOrNull(1) }
             .map { it.trim(' ', '.', ',', ';', ':') }
             .firstOrNull { it.length >= 2 }
             ?: "Unknown Merchant"
+
+        val keywords = listOf(" ref ", " reference ", " txn ", " transaction ", " via ", " using ", " card ", " a/c ", " acct ", " account ", " avl ", " avail ", " bal ", " balance ")
+        for (kw in keywords) {
+            val idx = merchant.indexOf(kw, ignoreCase = true)
+            if (idx != -1) {
+                merchant = merchant.substring(0, idx)
+            }
+        }
+        val suffixKeywords = listOf(" ref", " txn", " via", " using", " avl", " bal")
+        for (kw in suffixKeywords) {
+            if (merchant.lowercase(Locale.getDefault()).endsWith(kw)) {
+                merchant = merchant.substring(0, merchant.length - kw.length)
+            }
+        }
+        merchant = merchant.trim(' ', '.', ',', ';', ':')
+        if (merchant.isEmpty()) {
+            merchant = "Unknown Merchant"
+        }
 
         val accountLastDigits = accountPattern.find(normalized)?.groupValues?.getOrNull(1)
         val transactionReference = referencePattern.find(normalized)?.groupValues?.getOrNull(1)

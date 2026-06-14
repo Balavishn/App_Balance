@@ -23,11 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
+import androidx.compose.foundation.layout.PaddingValues
+
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(
+    contentPadding: PaddingValues,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -48,6 +55,8 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(contentPadding)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {

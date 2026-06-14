@@ -20,6 +20,8 @@ import com.aibudgetplanner.app.data.local.entity.ExpenseEntity
 import java.time.Instant
 import java.time.ZoneId
 
+import androidx.compose.foundation.layout.PaddingValues
+
 @Composable
 fun ExpenseHistoryScreen(
     uiState: ExpenseHistoryUiState,
@@ -32,70 +34,78 @@ fun ExpenseHistoryScreen(
     onSaveEdit: () -> Unit,
     onCancelEdit: () -> Unit,
     onDelete: (ExpenseEntity) -> Unit,
-    contentPaddingTop: androidx.compose.ui.unit.Dp
+    contentPadding: PaddingValues
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = contentPaddingTop)
+            .padding(contentPadding)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(text = "Expense History", style = MaterialTheme.typography.headlineMedium)
+        item {
+            Text(text = "Expense History", style = MaterialTheme.typography.headlineMedium)
+        }
 
-        OutlinedTextField(
-            value = uiState.searchQuery,
-            onValueChange = onSearchChange,
-            label = { Text("Search description or payment") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        item {
+            OutlinedTextField(
+                value = uiState.searchQuery,
+                onValueChange = onSearchChange,
+                label = { Text("Search description or payment") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
-        OutlinedTextField(
-            value = uiState.categoryFilter,
-            onValueChange = onCategoryFilterChange,
-            label = { Text("Category filter (ALL or category)") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        item {
+            OutlinedTextField(
+                value = uiState.categoryFilter,
+                onValueChange = onCategoryFilterChange,
+                label = { Text("Category filter (ALL or category)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
-        OutlinedTextField(
-            value = uiState.dateFilter,
-            onValueChange = onDateFilterChange,
-            label = { Text("Date filter YYYY-MM-DD") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        item {
+            OutlinedTextField(
+                value = uiState.dateFilter,
+                onValueChange = onDateFilterChange,
+                label = { Text("Date filter YYYY-MM-DD") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         if (uiState.editingExpenseId != null) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Edit Expense", style = MaterialTheme.typography.titleMedium)
-                    OutlinedTextField(
-                        value = uiState.editAmount,
-                        onValueChange = onEditAmountChange,
-                        label = { Text("Amount") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = uiState.editDescription,
-                        onValueChange = onEditDescriptionChange,
-                        label = { Text("Description") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = onSaveEdit) { Text("Save") }
-                        Button(onClick = onCancelEdit) { Text("Cancel") }
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Edit Expense", style = MaterialTheme.typography.titleMedium)
+                        OutlinedTextField(
+                            value = uiState.editAmount,
+                            onValueChange = onEditAmountChange,
+                            label = { Text("Amount") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = uiState.editDescription,
+                            onValueChange = onEditDescriptionChange,
+                            label = { Text("Description") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = onSaveEdit) { Text("Save") }
+                            Button(onClick = onCancelEdit) { Text("Cancel") }
+                        }
                     }
                 }
             }
         }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(uiState.expenses, key = { it.expenseId }) { expense ->
-                ExpenseRow(
-                    expense = expense,
-                    onEdit = { onStartEdit(expense) },
-                    onDelete = { onDelete(expense) }
-                )
-            }
+        items(uiState.expenses, key = { it.expenseId }) { expense ->
+            ExpenseRow(
+                expense = expense,
+                onEdit = { onStartEdit(expense) },
+                onDelete = { onDelete(expense) }
+            )
         }
     }
 }

@@ -54,6 +54,8 @@ android {
 }
 
 dependencies {
+    implementation("com.github.PhilJay:MPAndroidChart:3.1.0")
+    implementation("com.google.android.material:material:1.12.0")
     val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
 
     implementation(composeBom)

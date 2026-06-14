@@ -1,0 +1,31 @@
+# Android build & IDE files
+.gradle/
+.idea/
+.kotlin/
+build/
+app/build/
+*.iml
+local.properties
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+*.log
+
+# Python virtual environment & cache
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+budget_planner.db
+test_budget_planner.db
+statement_import.db
+statement_dedup.db
+
+# VS Code / OS files
+.vscode/
+.DS_Store
+Thumbs.db

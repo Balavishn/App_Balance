@@ -17,8 +17,10 @@ class BudgetEngineUseCase @Inject constructor() {
         return availableBudget - spentThisMonth
     }
 
-    fun calculateSavingsProgress(salary: Double, savingsGoal: Double): Double {
-        if (salary <= 0.0) return 0.0
-        return (savingsGoal / salary) * 100.0
+    fun calculateSavingsProgress(salary: Double, fixedExpenses: Double, spentThisMonth: Double, savingsGoal: Double): Double {
+        if (savingsGoal <= 0.0) return 100.0
+        val actualSaved = salary - fixedExpenses - spentThisMonth
+        val progress = (actualSaved / savingsGoal) * 100.0
+        return progress.coerceIn(0.0, 100.0)
     }
 }

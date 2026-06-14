@@ -17,12 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aibudgetplanner.app.domain.model.StatementImportResult
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
+import androidx.compose.foundation.layout.PaddingValues
+
 @Composable
 fun StatementImportScreen(
     uiState: StatementImportUiState,
     onPickFile: (android.net.Uri) -> Unit,
     onClear: () -> Unit,
-    contentPaddingTop: androidx.compose.ui.unit.Dp
+    contentPadding: PaddingValues
 ) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -36,7 +41,8 @@ fun StatementImportScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = contentPaddingTop)
+            .padding(contentPadding)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

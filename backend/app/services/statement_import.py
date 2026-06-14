@@ -123,7 +123,8 @@ def _expense_key(expense_date: date, amount: float, category: str, description: 
 
 
 def _transaction_key(transaction: ParsedTransaction) -> tuple[str, float, str, str]:
-    return _expense_key(transaction.transaction_date, transaction.amount, transaction.category, transaction.description)
+    combined_desc = f"{transaction.merchant} | {transaction.description}".strip(" |")
+    return _expense_key(transaction.transaction_date, transaction.amount, transaction.category, combined_desc)
 
 
 def _detect_statement_type(file_name: str) -> str:
@@ -185,14 +186,45 @@ def _parse_pdf(file_bytes: bytes) -> list[ParsedTransaction]:
         if not stripped:
             continue
 
-        amount_match = re.search(r"(-?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)$", stripped)
-        if not amount_match:
-            continue
-
-        amount = _parse_amount(amount_match.group(1))
+        # Find the date
         date_match = _find_date_in_text(stripped)
         transaction_date = date_match or date.today()
-        description = re.sub(r"\s+", " ", stripped[: amount_match.start()]).strip()
+
+        # Remove the date from the line to avoid matching year/day as amount
+        line_no_date = stripped
+        if date_match:
+            for pattern in [r"\b\d{4}-\d{2}-\d{2}\b", r"\b\d{2}[/-]\d{2}[/-]\d{4}\b", r"\b\d{2}[/-]\d{2}[/-]\d{2}\b"]:
+                m = re.search(pattern, line_no_date)
+                if m:
+                    line_no_date = line_no_date.replace(m.group(0), " ")
+                    break
+
+        # Find all number candidates in the line (matching standard currency formats)
+        # 1. Match numbers with decimals (e.g., -150.00, 12,500.50, 1200.00)
+        candidates = re.findall(r"(-?\b\d+(?:,\d{3})*\.\d{2}\b)", line_no_date)
+        
+        # 2. If no decimals, fallback to integers (e.g., -150, 1200) but ignore long reference numbers (e.g., > 7 digits)
+        if not candidates:
+            all_ints = re.findall(r"(-?\b\d+(?:,\d{3})*\b)", line_no_date)
+            candidates = [x for x in all_ints if len(x.replace("-", "").replace(",", "")) <= 7]
+
+        if not candidates:
+            continue
+
+        # The transaction amount is usually the first candidate on the line (running balance is last)
+        amount = _parse_amount(candidates[0])
+        
+        # Calculate description: remove the parsed amount from the line as well as any other candidates
+        description = line_no_date
+        for cand in candidates:
+            description = description.replace(cand, "")
+        
+        # Clean up description (remove extra spaces, common trailing words like DR, CR, bal, balance)
+        description = re.sub(r"\b(DR|CR|bal|balance)\b", "", description, flags=re.IGNORECASE)
+        # Remove reference number prefixes (e.g. Ref 12345, Txn 12345) to clean up merchant names
+        description = re.sub(r"\b(ref|txn|reference|id|trans|transaction)\b:?\s*\d+", "", description, flags=re.IGNORECASE)
+        description = re.sub(r"\s+", " ", description).strip(" -|/\\")
+        
         merchant = _extract_merchant(description)
         category = _infer_category(f"{description} {merchant}")
 

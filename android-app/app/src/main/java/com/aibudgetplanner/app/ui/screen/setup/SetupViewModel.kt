@@ -20,6 +20,24 @@ class SetupViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SetupUiState())
     val uiState: StateFlow<SetupUiState> = _uiState.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            budgetRepository.observeProfile().collect { profile ->
+                if (profile != null) {
+                    _uiState.update {
+                        it.copy(
+                            salary = if (profile.salary > 0) profile.salary.toInt().toString() else "",
+                            savingsGoal = if (profile.monthlySavingsGoal > 0) profile.monthlySavingsGoal.toInt().toString() else "",
+                            salaryDate = profile.salaryDate.toString(),
+                            currency = profile.currency,
+                            financialGoals = profile.financialGoals
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     fun onSalaryChange(value: String) = _uiState.update { it.copy(salary = value) }
     fun onSavingsGoalChange(value: String) = _uiState.update { it.copy(savingsGoal = value) }
     fun onSalaryDateChange(value: String) = _uiState.update { it.copy(salaryDate = value) }

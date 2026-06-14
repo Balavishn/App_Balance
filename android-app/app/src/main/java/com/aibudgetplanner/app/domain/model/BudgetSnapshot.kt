@@ -9,5 +9,6 @@ data class BudgetSnapshot(
     val remainingBudget: Double,
     val dailyBudget: Double,
     val remainingDays: Int,
-    val savingsProgress: Double
+    val savingsProgress: Double,
+    val currency: String
 )

@@ -2,4 +2,8 @@
     <style name="Theme.AIBudgetPlanner" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
+<!-- Correct Material 3 Syntax -->
+    <style name="Theme.YourAppName" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+    </style>
 </resources>
